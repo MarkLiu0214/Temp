@@ -5,7 +5,7 @@
 #include <thread>
 
 
-int  main(argc, char const *argv[]){
+int  main(int argc, char const *argv[]){
     // 初始化通道工廠
     unitree::robot::ChannelFactory::Instance()->Init(0, argv[1]);
 
@@ -19,10 +19,14 @@ int  main(argc, char const *argv[]){
     std::this_thread::sleep_for(std::chrono::seconds(3));
     */
 
-    locoClient.Set_Velocity(0.3, 0, 0, 3);
-    locoClient.Set_Velocity(0, 0, -0.3, 3);
-    locoClient.Set_Velocity(0.3, 0, 0, 3);
-    locoClient.Set_Velocity(0, 0, 0.3, 3);
+    locoClient.SetVelocity(0.3, 0, 0, 3);
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    locoClient.SetVelocity(0, 0, -0.3, 3);
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    locoClient.SetVelocity(0.3, 0, 0, 3);
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    locoClient.SetVelocity(0, 0, 0.3, 3);
+    std::this_thread::sleep_for(std::chrono::seconds(1));
 
 
 
