@@ -19,23 +19,40 @@ int  main(int argc, char const *argv[]){
     locoClient.Init();
     locoClient.SetTimeout(10.f);
 
+    locoClient.Start();
+    locoClient.StandUp();
     /*
     locoClient.Move(0.3f, 0, 0, true);
     std::this_thread::sleep_for(std::chrono::seconds(3));
     */
+    printf("Press \'s\' to start\n");
+    while(true){
+        
 
-    char input;
-    std::cin >> input;
-    if(input == 's'){
-        locoClient.SetVelocity(0.1, 0, 0, 3);
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-        locoClient.SetVelocity(0, 0, -0.3, 3);
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-        locoClient.SetVelocity(0.1, 0, 0, 3);
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-        locoClient.SetVelocity(0, 0, 0.3, 3);
-        std::this_thread::sleep_for(std::chrono::seconds(1));
+        char input;
+        std::cin >> input;
+
+        if(input == 's'){
+            printf("\'s\' is pressed, now start walking\n");
+
+            locoClient.SetVelocity(0.1, 0, 0, 3);
+            printf("Moving foward\n");
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+
+            locoClient.SetVelocity(0, 0, -0.3, 3);
+            printf("Turning right\n");
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+
+            locoClient.SetVelocity(0.1, 0, 0, 3);
+            printf("Moving forward\n");
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+
+            locoClient.SetVelocity(0, 0, 0.3, 3);
+            printf("Turning left\n");
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+        }
     }
+    
 
     
 
