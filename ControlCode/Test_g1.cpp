@@ -6,6 +6,11 @@
 
 
 int  main(int argc, char const *argv[]){
+    if (argc < 2) {
+        std::cout << "使用方法: program_name [network_interface，如 eth0]" << std::endl;
+        return 1;
+    }
+    
     // 初始化通道工廠
     unitree::robot::ChannelFactory::Instance()->Init(0, argv[1]);
 
@@ -19,14 +24,20 @@ int  main(int argc, char const *argv[]){
     std::this_thread::sleep_for(std::chrono::seconds(3));
     */
 
-    locoClient.SetVelocity(0.1, 0, 0, 3);
-    std::this_thread::sleep_for(std::chrono::seconds(1));
-    locoClient.SetVelocity(0, 0, -0.3, 3);
-    std::this_thread::sleep_for(std::chrono::seconds(1));
-    locoClient.SetVelocity(0.1, 0, 0, 3);
-    std::this_thread::sleep_for(std::chrono::seconds(1));
-    locoClient.SetVelocity(0, 0, 0.3, 3);
-    std::this_thread::sleep_for(std::chrono::seconds(1));
+    char input;
+    std::cin >> input;
+    if(input == 's'){
+        locoClient.SetVelocity(0.1, 0, 0, 3);
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+        locoClient.SetVelocity(0, 0, -0.3, 3);
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+        locoClient.SetVelocity(0.1, 0, 0, 3);
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+        locoClient.SetVelocity(0, 0, 0.3, 3);
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+    }
+
+    
 
 
     
