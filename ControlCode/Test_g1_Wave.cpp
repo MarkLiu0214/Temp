@@ -2,7 +2,7 @@
 #include <chrono>
 #include <iostream>
 #include <thread>
-
+#include <cmath>
 #include <unitree/idl/hg/LowCmd_.hpp>
 #include <unitree/idl/hg/LowState_.hpp>
 #include <unitree/robot/channel/channel_publisher.hpp>
