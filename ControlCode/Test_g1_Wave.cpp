@@ -233,7 +233,7 @@ int main(int argc, char const *argv[]) {
 
     //start arm control
     // === Step 1: 把右手慢慢舉起來 ===
-    std::array<float, 17> current_jpos_des{};
+    //std::array<float, 17> current_jpos_des{};
     for (int i = 0; i < num_time_steps; ++i) {
         for (int j = 0; j < init_pos.size(); ++j) {
             current_jpos_des.at(j) += std::clamp(target_pos.at(j) - current_jpos_des.at(j),
