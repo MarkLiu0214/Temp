@@ -284,6 +284,30 @@ int main(int argc, char const *argv[]) {
 
   std::cout << "Done waving 👋" << std::endl;
 
+  // stop control
+  std::cout << "Press Enter to stop arm ctrl ...";
+  std::cin.get();
+  float stop_time = 2.0f;
+  int stop_time_steps = static_cast<int>(stop_time / control_dt);
+  
+  for (int i = 0; i < stop_time_steps; ++i) {
+      // increase weight
+      weight -= delta_weight;
+      weight = std::clamp(weight, 0.f, 1.f);
+  
+      // 设置电机转动的平滑增减权重
+      // 电机将逐渐进入自由状态
+      msg.motor_cmd().at(JointIndex::kNotUsedJoint).q(weight);
+  
+      // 发送上肢电机的控制指令
+      arm_sdk_publisher->Write(msg);
+  
+      // 延时一个控制步长
+      std::this_thread::sleep_for(sleep_time);
+  }
+  
+  std::cout << "Stop arm control. " << std::endl;
+
 
 
 }
