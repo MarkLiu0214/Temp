@@ -60,6 +60,125 @@ enum JointIndex {
     kNotUsedJoint5
 };
 
+void RaiseRightHand(unitree::robot::ChannelPublisherPtr<unitree_hg::msg::dds_::LowCmd_>& pub,
+  unitree_hg::msg::dds_::LowCmd_& msg,
+  const unitree_hg::msg::dds_::LowState_& state,
+  const std::array<JointIndex, 17>& arm_joints,
+  float kp, float kd, float tau_ff,
+  float control_dt, float max_joint_velocity) {
+
+  std::array<float, 17> current_jpos{};
+  for (int i = 0; i < arm_joints.size(); ++i) {
+    current_jpos.at(i) = state.motor_state().at(arm_joints.at(i)).q();
+  }
+
+  // 目標姿勢：右手抬起來（你可以微調這些角度）
+  std::array<float, 17> target_pos = current_jpos;
+  target_pos[7] = 0.0f;     // RightShoulderPitch
+  target_pos[8] = -1.0f;    // RightShoulderRoll
+  target_pos[9] = 0.5f;     // RightShoulderYaw
+  target_pos[10] = 1.2f;    // RightElbow
+
+  int steps = static_cast<int>(2.0f / control_dt);
+  float max_joint_delta = max_joint_velocity * control_dt;
+
+  for (int i = 0; i < steps; ++i) {
+    for (int j = 0; j < arm_joints.size(); ++j) {
+      float delta = std::clamp(target_pos.at(j) - current_jpos.at(j),
+                        -max_joint_delta, max_joint_delta);
+      current_jpos.at(j) += delta;
+
+      msg.motor_cmd().at(arm_joints.at(j)).q(current_jpos.at(j));
+      msg.motor_cmd().at(arm_joints.at(j)).dq(0.f);
+      msg.motor_cmd().at(arm_joints.at(j)).kp(kp);
+      msg.motor_cmd().at(arm_joints.at(j)).kd(kd);
+      msg.motor_cmd().at(arm_joints.at(j)).tau(tau_ff);
+    }
+
+    pub->Write(msg);
+    std::this_thread::sleep_for(std::chrono::milliseconds(
+    static_cast<int>(control_dt * 1000)));
+  }
+}
+
+void WaveRightHand(unitree::robot::ChannelPublisherPtr<unitree_hg::msg::dds_::LowCmd_>& pub,
+ unitree_hg::msg::dds_::LowCmd_& msg,
+ const std::array<JointIndex, 17>& arm_joints,
+ std::array<float, 17>& base_pos,
+ float kp, float kd, float tau_ff,
+ float control_dt, float duration = 3.0f) {
+
+  float freq = 1.5f;
+  float amp = 0.5f;
+  int steps = static_cast<int>(duration / control_dt);
+
+  for (int i = 0; i < steps; ++i) {
+    float t = i * control_dt;
+    float wave = amp * std::sin(2 * kPi * freq * t);
+
+    for (int j = 0; j < arm_joints.size(); ++j) {
+      float q_des = base_pos.at(j);
+
+      if (arm_joints.at(j) == JointIndex::kRightShoulderYaw ||
+      arm_joints.at(j) == JointIndex::kRightElbow) {
+      q_des += wave;
+      }
+
+      msg.motor_cmd().at(arm_joints.at(j)).q(q_des);
+      msg.motor_cmd().at(arm_joints.at(j)).dq(0.f);
+      msg.motor_cmd().at(arm_joints.at(j)).kp(kp);
+      msg.motor_cmd().at(arm_joints.at(j)).kd(kd);
+      msg.motor_cmd().at(arm_joints.at(j)).tau(tau_ff);
+    }
+
+    pub->Write(msg);
+    std::this_thread::sleep_for(std::chrono::milliseconds(
+    static_cast<int>(control_dt * 1000)));
+  }
+}
+
+void LowerRightHand(unitree::robot::ChannelPublisherPtr<unitree_hg::msg::dds_::LowCmd_>& pub,
+  unitree_hg::msg::dds_::LowCmd_& msg,
+  const unitree_hg::msg::dds_::LowState_& state,
+  const std::array<JointIndex, 17>& arm_joints,
+  float kp, float kd, float tau_ff,
+  float control_dt, float max_joint_velocity) {
+
+  std::array<float, 17> current_jpos{};
+  for (int i = 0; i < arm_joints.size(); ++i) {
+    current_jpos.at(i) = state.motor_state().at(arm_joints.at(i)).q();
+  }
+
+  std::array<float, 17> target_pos = current_jpos;
+  target_pos[7] = 0;  // RightShoulderPitch
+  target_pos[8] = 0;
+  target_pos[9] = 0;
+  target_pos[10] = 0;
+
+  int steps = static_cast<int>(2.0f / control_dt);
+  float max_joint_delta = max_joint_velocity * control_dt;
+
+  for (int i = 0; i < steps; ++i) {
+    for (int j = 0; j < arm_joints.size(); ++j) {
+      float delta = std::clamp(target_pos.at(j) - current_jpos.at(j),
+                        -max_joint_delta, max_joint_delta);
+      current_jpos.at(j) += delta;
+
+      msg.motor_cmd().at(arm_joints.at(j)).q(current_jpos.at(j));
+      msg.motor_cmd().at(arm_joints.at(j)).dq(0.f);
+      msg.motor_cmd().at(arm_joints.at(j)).kp(kp);
+      msg.motor_cmd().at(arm_joints.at(j)).kd(kd);
+      msg.motor_cmd().at(arm_joints.at(j)).tau(tau_ff);
+    }
+
+    pub->Write(msg);
+    std::this_thread::sleep_for(std::chrono::milliseconds(
+    static_cast<int>(control_dt * 1000)));
+  }
+}
+
+
+
 int main(int argc, char const *argv[]) {
   if (argc < 2) {
     std::cout << "Usage: " << argv[0] << " networkInterface" << std::endl;
@@ -129,79 +248,41 @@ int main(int argc, char const *argv[]) {
 
 // 在 main 裡面的 arm control 區段換成這段即可
 // === Step 1: 把右手慢慢舉起來 ===
-float period = 5.;
-int num_time_steps = static_cast<int>(period / control_dt);
-std::array<float, 17> current_jpos_des{};
-for (int i = 0; i < num_time_steps; ++i) {
-    for (int j = 0; j < init_pos.size(); ++j) {
-        current_jpos_des.at(j) += std::clamp(target_pos.at(j) - current_jpos_des.at(j),
-                                             -max_joint_delta, max_joint_delta);
-    }
+  float period = 5.;
+  int num_time_steps = static_cast<int>(period / control_dt);
+  std::array<float, 17> current_jpos_des{};
+  for (int i = 0; i < num_time_steps; ++i) {
+      for (int j = 0; j < init_pos.size(); ++j) {
+          current_jpos_des.at(j) += std::clamp(target_pos.at(j) - current_jpos_des.at(j),
+                                              -max_joint_delta, max_joint_delta);
+      }
 
-    for (int j = 0; j < init_pos.size(); ++j) {
-        msg.motor_cmd().at(arm_joints.at(j)).q(current_jpos_des.at(j));
-        msg.motor_cmd().at(arm_joints.at(j)).dq(dq);
-        msg.motor_cmd().at(arm_joints.at(j)).kp(kp);
-        msg.motor_cmd().at(arm_joints.at(j)).kd(kd);
-        msg.motor_cmd().at(arm_joints.at(j)).tau(tau_ff);
-    }
+      for (int j = 0; j < init_pos.size(); ++j) {
+          msg.motor_cmd().at(arm_joints.at(j)).q(current_jpos_des.at(j));
+          msg.motor_cmd().at(arm_joints.at(j)).dq(dq);
+          msg.motor_cmd().at(arm_joints.at(j)).kp(kp);
+          msg.motor_cmd().at(arm_joints.at(j)).kd(kd);
+          msg.motor_cmd().at(arm_joints.at(j)).tau(tau_ff);
+      }
 
-    arm_sdk_publisher->Write(msg);
-    std::this_thread::sleep_for(sleep_time);
-}
+      arm_sdk_publisher->Write(msg);
+      std::this_thread::sleep_for(sleep_time);
+  }
 
-// === Step 2: 揮手 (整隻手臂左右搖) ===
-std::cout << "Start waving with shoulder!" << std::endl;
+  std::cout << "Press ENTER to start waving..." << std::endl;
+  std::cin.get();
 
-float wave_duration = 5.0f;
-int wave_steps = static_cast<int>(wave_duration / control_dt);
-float wave_freq = 1.0f;
-float wave_amp = 0.5f;
+  RaiseRightHand(arm_sdk_publisher, msg, state_msg, arm_joints,
+                kp, kd, tau_ff, control_dt, max_joint_velocity);
 
-for (int i = 0; i < wave_steps; ++i) {
-    float t = i * control_dt;
-    float wave_angle = wave_amp * std::sin(2 * kPi * wave_freq * t);
+  std::cout << "Waving!" << std::endl;
+  WaveRightHand(arm_sdk_publisher, msg, arm_joints,
+                current_jpos_des, kp, kd, tau_ff, control_dt);
 
-    for (int j = 0; j < arm_joints.size(); ++j) {
-        JointIndex joint = arm_joints.at(j);
-        float q_des = current_jpos_des.at(j); // 保持原來姿勢
+  LowerRightHand(arm_sdk_publisher, msg, state_msg, arm_joints,
+                kp, kd, tau_ff, control_dt, max_joint_velocity);
 
-        if (joint == JointIndex::kRightShoulderYaw) {
-            q_des = wave_angle; // 改為控制肩膀的橫向搖擺
-        }
-
-        msg.motor_cmd().at(joint).q(q_des);
-        msg.motor_cmd().at(joint).dq(dq);
-        msg.motor_cmd().at(joint).kp(kp);
-        msg.motor_cmd().at(joint).kd(kd);
-        msg.motor_cmd().at(joint).tau(tau_ff);
-    }
-
-    arm_sdk_publisher->Write(msg);
-    std::this_thread::sleep_for(sleep_time);
-}
-
-
-// === Step 3: 把右手慢慢放下回到初始姿勢 ===
-for (int i = 0; i < num_time_steps; ++i) {
-    for (int j = 0; j < init_pos.size(); ++j) {
-        current_jpos_des.at(j) += std::clamp(init_pos.at(j) - current_jpos_des.at(j),
-                                             -max_joint_delta, max_joint_delta);
-    }
-
-    for (int j = 0; j < init_pos.size(); ++j) {
-        msg.motor_cmd().at(arm_joints.at(j)).q(current_jpos_des.at(j));
-        msg.motor_cmd().at(arm_joints.at(j)).dq(dq);
-        msg.motor_cmd().at(arm_joints.at(j)).kp(kp);
-        msg.motor_cmd().at(arm_joints.at(j)).kd(kd);
-        msg.motor_cmd().at(arm_joints.at(j)).tau(tau_ff);
-    }
-
-    arm_sdk_publisher->Write(msg);
-    std::this_thread::sleep_for(sleep_time);
-}
-
-std::cout << "Arm returned to init position." << std::endl;
+  std::cout << "Done waving 👋" << std::endl;
 
 
 
