@@ -8,6 +8,8 @@
 #include <unitree/idl/hg/LowState_.hpp>
 #include <unitree/robot/channel/channel_publisher.hpp>
 #include <unitree/robot/channel/channel_subscriber.hpp>
+#include <unitree/robot/g1/loco/g1_loco_api.hpp>
+#include <unitree/robot/g1/loco/g1_loco_client.hpp>
 
 static const std::string kTopicArmSDK = "rt/arm_sdk";
 static const std::string kTopicState = "rt/lowstate";
@@ -68,6 +70,10 @@ int main(int argc, char const *argv[]){
     
     unitree::robot::ChannelFactory::Instance()->Init(0, argv[1]);
     
+    unitree::robot::g1::LocoClient locoClient;
+    locoClient.Init();
+    locoClient.SetTimeout(10.f);
+
     unitree::robot::ChannelPublisherPtr<unitree_hg::msg::dds_::LowCmd_>
           arm_sdk_publisher;
     unitree_hg::msg::dds_::LowCmd_ msg;
@@ -148,7 +154,11 @@ int main(int argc, char const *argv[]){
         std::this_thread::sleep_for(sleep_time);
     }
   
-  std::cout << "Stop arm control. " << std::endl;                                     
+    std::cout << "Stop arm control. " << std::endl;
+  
+    std::cout << "Press ENTER to balanced stand. " << std::endl;
+    std::cin.get();
+    locoClient.BalanceStand();
     
 }
 
