@@ -201,6 +201,6 @@ for (int i = 0; i < num_time_steps; ++i) {
 
 std::cout << "Arm returned to init position." << std::endl;
 
-d
+
 
 }
