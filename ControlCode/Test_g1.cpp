@@ -27,12 +27,12 @@ int  main(int argc, char const *argv[]){
     locoClient.Move(0.3f, 0, 0, true);
     std::this_thread::sleep_for(std::chrono::seconds(3));
     */
-    printf("Press \'s\' to start\n");
+    printf("Press ENTER to start\n");
     while(true){
         
-        std::cin;
+        std::cin.get();
 
-        printf("\'s\' is pressed, now start walking\n");
+        printf("ENTER is pressed, now start walking\n");
 
         locoClient.SetVelocity(0.3, 0, 0, 3);
         printf("Moving foward\n");
