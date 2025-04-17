@@ -27,9 +27,10 @@ int  main(int argc, char const *argv[]){
     locoClient.Move(0.3f, 0, 0, true);
     std::this_thread::sleep_for(std::chrono::seconds(3));
     */
-    printf("Press ENTER to start\n");
+    
     while(true){
         
+        printf("Press ENTER to start\n");
         std::cin.get();
 
         printf("ENTER is pressed, now start walking\n");
