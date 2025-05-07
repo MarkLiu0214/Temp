@@ -30,27 +30,31 @@ void asr_handler(const void *msg, unitree::robot::g1::AudioClient &audioClient, 
 
         // 檢查由語音指令觸發的TTS回應
         if (messageAfterText.find("你是谁") != std::string::npos) {
-            audioClient.TtsMaker("你好，我是居萬機器人，來自飆機器人", 0);
+            audioClient.TtsMaker("你好，我是居萬機器人", 0);
         } else if (messageAfterText.find("你在哪") != std::string::npos) {
-            audioClient.TtsMaker("我目前在飆機器人總部。", 0);
+            audioClient.TtsMaker("我目前在國立陽明交通大學。", 0);
         } else if (messageAfterText.find("你来自") != std::string::npos) {
-            audioClient.TtsMaker("我來自飆機器人", 0);
+            audioClient.TtsMaker("我來自國立陽明交通大學", 0);
         }
-        else if(messageAfterText.find("前進") != std::string::npos){
+        else if(messageAfterText.find("前进") != std::string::npos){
             audioClient.TtsMaker("前進", 0);
-            locoClient.Move(0.3f, 0.0f, 0.0f);
+            locoClient.SetVelocity(0.3, 0, 0, 3);
+            std::this_thread::sleep_for(std::chrono::seconds(5));
         } 
-        else if(messageAfterText.find("後退") != std::string::npos){
+        else if(messageAfterText.find("后退") != std::string::npos){
             audioClient.TtsMaker("後退", 0);
-            locoClient.Move(-0.3f, 0.0f, 0.0f);
+            locoClient.SetVelocity(-0.3, 0, 0, 3);
+            std::this_thread::sleep_for(std::chrono::seconds(5));
         }
-        else if(messageAfterText.find("右轉") != std::string::npos){
+        else if(messageAfterText.find("右转") != std::string::npos){
             audioClient.TtsMaker("右轉", 0);
-            locoClient.Move(0.0f, 0.0f, -0.5f);
+            locoClient.SetVelocity(0.0f, 0.0f, -0.5f, 3);
+            std::this_thread::sleep_for(std::chrono::seconds(5));
         }
-        else if(messageAfterText.find("左轉") != std::string::npos){
+        else if(messageAfterText.find("左转") != std::string::npos){
             audioClient.TtsMaker("左轉", 0);
-            locoClient.Move(0.0f, 0.0f, 0.5f);
+            locoClient.SetVelocity(0.0f, 0.0f, 0.5f, 3);
+            std::this_thread::sleep_for(std::chrono::seconds(5));
         }
         // 可根據需求增加更多的語音指令處理
     }
